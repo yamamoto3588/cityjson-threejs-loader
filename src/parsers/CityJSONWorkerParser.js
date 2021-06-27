@@ -8,6 +8,8 @@ import {
 	ShaderMaterial,
 	UniformsUtils } from 'three';
 
+import { ParserWorker } from './ParserWorker.js';
+
 // Adjusts the three.js standard shader to include batchid highlight
 function createObjectColorShader( shader, objectColors ) {
 
@@ -112,21 +114,20 @@ export class CityJSONWorkerParser {
 
 	parse( data, scene ) {
 
-		const worker = new Worker( "./ParserWorker.js" );
+		const worker = new ParserWorker();
 		const m = this.matrix;
 		const onChunkLoad = this.onChunkLoad;
 		const material = this.material;
-		worker.onmessage = function ( e ) {
-
-			const vertices = e.data.v_buffer;
+		worker.callback = function ( e ) {
+			const vertices = e.v_buffer;
 
 			const geom = new BufferGeometry();
 
 			const vertexArray = new Float32Array( vertices );
 			geom.setAttribute( 'position', new BufferAttribute( vertexArray, 3 ) );
-			const idsArray = new Uint16Array( e.data.objectIds );
+			const idsArray = new Uint16Array( e.objectIds );
 			geom.setAttribute( 'objectid', new BufferAttribute( idsArray, 1 ) );
-			const typeArray = new Uint8Array( e.data.objectType );
+			const typeArray = new Uint8Array( e.objectType );
 			geom.setAttribute( 'type', new Int32BufferAttribute( typeArray, 1 ) );
 
 			geom.attributes.position.needsUpdate = true;

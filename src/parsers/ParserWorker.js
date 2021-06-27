@@ -1,42 +1,45 @@
 import { ChunkParser } from './ChunkParser.js';
 
-onmessage = function ( e ) {
+export class ParserWorker{
+	postMessage(e){
 
-	const parser = new ChunkParser();
-
-	const props = e.data[ 1 ];
-
-	if ( props ) {
-
-		if ( props.chunkSize ) {
-
-			parser.chunkSize = props.chunkSize;
-
+		const parser = new ChunkParser();
+	
+		const props = e[ 1 ];
+	
+		if ( props ) {
+	
+			if ( props.chunkSize ) {
+	
+				parser.chunkSize = props.chunkSize;
+	
+			}
+	
+			if ( props.objectColors ) {
+	
+				parser.objectColors = props.objectColors;
+	
+			}
+	
 		}
-
-		if ( props.objectColors ) {
-
-			parser.objectColors = props.objectColors;
-
-		}
-
-	}
-
-	parser.onchunkload = ( v, objectIds, objectType ) => {
-
-		const vertexArray = new Float32Array( v );
-		const vertexBuffer = vertexArray.buffer;
-
-		const msg = {
-			v_buffer: vertexBuffer,
-			objectIds,
-			objectType
+	
+		parser.onchunkload = ( v, objectIds, objectType ) => {
+	
+			const vertexArray = new Float32Array( v );
+			const vertexBuffer = vertexArray.buffer;
+	
+			const msg = {
+				v_buffer: vertexBuffer,
+				objectIds,
+				objectType
+			};
+			this.callback( msg, [ vertexBuffer ] );
+	
 		};
-		postMessage( msg, [ vertexBuffer ] );
-
+	
+		parser.parse( e[ 0 ] );
+	
 	};
-
-	parser.parse( e.data[ 0 ] );
-
-};
-
+	
+	
+}
